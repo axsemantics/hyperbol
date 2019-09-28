@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "start": "vue-cli-service serve",
+    "dev:server": "nodemon --watch server --watch shared server/index.js",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "test:e2e": "vue-cli-service test:e2e",
@@ -15,11 +16,13 @@
     "core-js": "^2.6.5",
     "jwt-decode": "^2.2.0",
     "nodemon": "^1.19.2",
-    "quidditch": "^5.6.0",
+    "quidditch": "^6.1.0",
     "roboto-fontface": "^0.10.0",
+    "uuid": "^3.3.3",
     "vue": "^2.6.10",
     "vue-router": "^3.0.3",
-    "vuex": "^3.0.1"
+    "vuex": "^3.0.1",
+    "ws": "^7.1.2"
   },
   "devDependencies": {
     "@babel/plugin-proposal-json-strings": "^7.2.0",
@@ -44,5 +47,9 @@
     "stylus": "^0.54.5",
     "stylus-loader": "^3.0.2",
     "vue-template-compiler": "^2.6.10"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.1",
+    "utf-8-validate": "^5.0.2"
   }
 }

@@ -3,6 +3,7 @@ import router from 'router'
 import store from 'store'
 import Buntpapier from 'buntpapier'
 
+import api from 'lib/api'
 import auth from 'lib/api/auth'
 
 Vue.config.productionTip = false
@@ -25,13 +26,16 @@ router.beforeEach((to, from, next) => {
 auth.init() // parse url to check for callback auth
 if (auth.token) {
 	store.commit('authenticate', auth.token)
+	api.init()
 	auth.getProfile().then(profile => {
 		store.commit('setProfile', profile)
 	})
 }
 
-new Vue({
+const app = new Vue({
 	router,
 	store,
 	render: h => h('router-view')
 }).$mount('#app')
+
+window.app = app

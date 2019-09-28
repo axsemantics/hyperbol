@@ -1,6 +1,6 @@
 const path = require('path')
-
-let targetStub = process.env.NODE_ENV === 'development' ? 'dev' : 'prod'
+const webpack = require('webpack')
+const targetStub = process.env.NODE_ENV === 'development' ? 'dev' : 'prod'
 
 module.exports = {
 	devServer: {
@@ -16,6 +16,11 @@ module.exports = {
 				'config': path.resolve(__dirname, `config.${targetStub}.js`)
 			}
 		},
+		plugins: [
+			new webpack.DefinePlugin({
+				'DEVELOPMENT': process.env.NODE_ENV === 'development'
+			})
+		],
 	},
 	css: {
 		loaderOptions: {

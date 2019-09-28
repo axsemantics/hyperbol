@@ -1,13 +1,10 @@
 <template lang="pug">
-#app
-	app-bar
-	router-view
+.c-app-bar
+	.logo hyperbol
 </template>
 <script>
-import 'styles/global.styl'
-import AppBar from 'components/app-bar'
 export default {
-	components: { AppBar },
+	components: {},
 	data () {
 		return {
 		}
@@ -22,9 +19,9 @@ export default {
 }
 </script>
 <style lang="stylus">
-#app
-	display: flex
-	flex-direction: column
-	width: 100vw
-	height: 100vh
+@import '~variables'
+
+.c-app-bar
+	height: 54px
+	card()
 </style>

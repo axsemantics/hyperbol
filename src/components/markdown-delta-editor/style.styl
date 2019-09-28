@@ -1,0 +1,32 @@
+@import '~variables'
+
+.c-markdown-delta-editor
+	min-height: 36px
+	position: relative
+	flex: 1 0 auto
+	display: flex
+	user-select: none
+	cursor: text
+	.content
+		margin: 8px
+		flex: auto
+	.caret
+		position: absolute
+		pointer-events: none
+		background-color: black
+		height: 23px
+		width: 1px
+		&:not(.visible)
+			display: none
+	textarea
+		height: 1px
+		width: 1px
+		font-size: 1px
+		letter-spacing: 0px
+		padding: 0
+		outline: none
+		resize: none
+		border: none
+		color: transparent
+		background-color: transparent
+		position: absolute
