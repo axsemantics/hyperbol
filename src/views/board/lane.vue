@@ -1,16 +1,18 @@
 <template lang="pug">
-.c-lane
+.c-lane(:data-lane="lane", v-scrollbar.y="")
 	.lane-header {{ lane }}
 		bunt-button(@click="addCard") add card
 	.cards
-		card(v-for="card of cards", :key="card.id", :card="card", :board="board")
+		card(v-for="card of cards", :key="card.id", :card="card", :board="board", @startDragging="$emit('startDragging', {card, event: $event})", :dragShadow="draggingCard && card._id === draggingCard._id")
 </template>
 <script>
+import Big from 'big.js'
 import Card from './card'
 export default {
 	props: {
 		lane: String,
-		board: Object
+		board: Object,
+		draggingCard: Object
 	},
 	components: { Card },
 	data () {
@@ -19,7 +21,11 @@ export default {
 	},
 	computed: {
 		cards () {
-			return Object.values(this.board.cards).filter(card => card.lane === this.lane)
+			const cards = Object.values(this.board.cards).filter(card => card.lane === this.lane && card._id !== this.draggingCard?._id)
+			if (this.draggingCard && this.draggingCard.lane === this.lane) {
+				cards.push(this.draggingCard)
+			}
+			return cards.sort((a, b) => Number(new Big(a.order).minus(b.order).toString()))
 		}
 	},
 	created () {},
@@ -29,7 +35,11 @@ export default {
 	},
 	methods: {
 		addCard () {
-			this.$store.dispatch('addCard', {board: this.board, lane: this.lane})
+			this.$store.dispatch('addCard', {
+				board: this.board,
+				lane: this.lane,
+				order: this.cards[0]?.order ? new Big(this.cards[0]?.order).minus(1).toString() : '0'
+			})
 		}
 	}
 }

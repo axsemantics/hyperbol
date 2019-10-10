@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@mdi/font": "^4.4.95",
+    "big.js": "^5.2.2",
     "buntpapier": "^1.6.3",
     "core-js": "^2.6.5",
     "jwt-decode": "^2.2.0",

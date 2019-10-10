@@ -39,15 +39,22 @@ export default new Vuex.Store({
 					break
 			}
 		},
-		addCard ({state}, {board, lane}) {
+		addCard ({state}, {board, lane, order}) {
 			const card = {
 				_t: 'card',
 				lane,
-				text: []
+				text: [],
+				order
 			}
 			const delta = new Delta().retain(1, {subOps: {cards: new Delta().insert(uuid(), {set: card}).ops}})
 			applyOpsToState(state.boards[board._id], delta.ops, Vue.set, Vue.delete)
 			api.quidditch.sendDelta(`board:${board._id}`, delta)
+		},
+		updateCard ({state}, {board, card, update}) {
+			const boardDelta = new Delta().retain(1, {subOps: {cards: new Delta().retain(card._id, {set: update}).ops}})
+			console.log(boardDelta)
+			api.quidditch.sendDelta(`board:${board._id}`, boardDelta)
+			applyOpsToState(state.boards[board._id], boardDelta.ops, Vue.set, Vue.delete)
 		},
 		updateCardText ({state}, {board, card, delta}) {
 			const boardDelta = new Delta().retain(1, {subOps: {cards: new Delta().retain(card._id, {subOps: {text: delta.ops}}).ops}})

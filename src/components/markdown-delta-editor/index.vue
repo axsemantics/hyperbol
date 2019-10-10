@@ -1,5 +1,5 @@
 <template lang="pug">
-.c-markdown-delta-editor(@mousedown="handleMousedown")
+.c-markdown-delta-editor(@mousedown.stop="handleMousedown")
 	.content(ref="content") {{ text }}
 	caret(:is-focused="selection.isFocused", :selection-positions="selectionPositions")
 	textarea(
