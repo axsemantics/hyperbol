@@ -27,17 +27,26 @@ export default new Vuex.Store({
 	},
 	actions: {
 		'quidditch::joined' ({state}, serverState) {
-			state.boards = serverState.boards
+			state.boards = serverState.boards.reduce((acc, board) => {
+				acc[board[0].insert._id] = board
+				return acc
+			}, {})
 		},
 		'quidditch::ot:delta' ({state}, {channel, delta}) {
 			const [matched, type, id] = channel.match(OT_CHANNEL_REGEX)
 			if (!matched) return
-			console.log(delta)
 			switch (type) {
 				case 'board':
 					applyOpsToState(state.boards[id], delta.ops, Vue.set, Vue.delete)
 					break
 			}
+		},
+		createBoard ({state}) {
+			api.quidditch.call('board:create',
+				[{insert: {_t: 'board', _id: uuid(), name: 'New Board', cards: {}}}]
+			).then(board => {
+				Vue.set(state.boards, board[0].insert._id, board)
+			})
 		},
 		addCard ({state}, {board, lane, order}) {
 			const id = uuid()
@@ -48,13 +57,12 @@ export default new Vuex.Store({
 				order
 			}
 			const delta = new Delta().retain(1, {subOps: {cards: new Delta().insert(id, {set: card}).ops}})
-			applyOpsToState(state.boards[board._id], delta.ops, Vue.set, Vue.delete)
 			api.quidditch.sendDelta(`board:${board._id}`, delta)
+			applyOpsToState(state.boards[board._id], delta.ops, Vue.set, Vue.delete)
 			return Promise.resolve(id)
 		},
 		updateCard ({state}, {board, card, update}) {
 			const boardDelta = new Delta().retain(1, {subOps: {cards: new Delta().retain(card._id, {set: update}).ops}})
-			console.log(boardDelta)
 			api.quidditch.sendDelta(`board:${board._id}`, boardDelta)
 			applyOpsToState(state.boards[board._id], boardDelta.ops, Vue.set, Vue.delete)
 		},
@@ -67,6 +75,7 @@ export default new Vuex.Store({
 			const boardDelta = new Delta().retain(1, {subOps: {cards: new Delta().delete(card._id).ops}})
 			api.quidditch.sendDelta(`board:${board._id}`, boardDelta)
 			applyOpsToState(state.boards[board._id], boardDelta.ops, Vue.set, Vue.delete)
+			console.log(state.boards[board._id])
 		}
 	}
 })

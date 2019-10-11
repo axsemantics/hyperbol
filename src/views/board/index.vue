@@ -28,7 +28,7 @@ export default {
 	computed: {
 		...mapState(['boards']),
 		board () {
-			return this.boards?.test[0].insert // naively unpack root delta
+			return this.boards?.[this.$route.params.boardId]?.[0].insert // naively unpack root delta
 		},
 		dragCloneStyle () {
 			if (!this.draggingPosition) return

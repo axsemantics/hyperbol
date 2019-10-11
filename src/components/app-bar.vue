@@ -1,15 +1,21 @@
 <template lang="pug">
-.c-app-bar
-	.logo hyperbol
+.c-app-bar(v-if="boards")
+	bunt-button(@click="$store.dispatch('createBoard')") new board
+	.boards
+		router-link.board(v-for="board in boards", :to="{name: 'board', params: {boardId: board[0].insert._id}}") {{ board[0].insert.name }}
 </template>
 <script>
+import { mapState } from 'vuex'
+
 export default {
 	components: {},
 	data () {
 		return {
 		}
 	},
-	computed: {},
+	computed: {
+		...mapState(['boards'])
+	},
 	created () {},
 	mounted () {
 		this.$nextTick(() => {
@@ -22,7 +28,10 @@ export default {
 @import '~variables'
 
 .c-app-bar
-	height: 54px
+	width: 300px
 	flex: none
 	card()
+	.boards
+		display: flex
+		flex-direction: column
 </style>

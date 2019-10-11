@@ -16,8 +16,8 @@ export default new Router({
 		component: App,
 		meta: {requiresAuth: true},
 		children: [{
-			path: '/',
-			name: 'home',
+			path: ':boardId',
+			name: 'board',
 			component: Board
 		}]
 	}]

@@ -1,19 +1,27 @@
 const WebSocket = require('ws')
 const { Delta, applyOpsToState } = require('quidditch')
 require('../shared/delta-types')
+const { Board } = require('./db')
 
 const app = {
 	state: {
 		boards: {
-			test: new Delta().insert({_t: 'board', _id: 'test', cards: {}}).ops
+			// test: new Delta().insert({_t: 'board', _id: 'test', name: 'Test', cards: {}}).ops
 		}
 	},
 	channels: {},
-	init () {
+	async init () {
 		app.server = new WebSocket.Server({port: 8000, clientTracking: true})
 		app.server.on('connection', (client, upgradeReq) => {
 			console.log('new client')
 			client.on('message', app.handleMessage.bind(this, client))
+		})
+		Board.scan().exec().then(results => {
+			console.log('loaded boards', results)
+			app.state.boards = results.reduce((acc, board) => {
+				acc[board.id] = JSON.parse(board.delta)
+				return acc
+			}, {})
 		})
 	},
 	destroy () {
@@ -32,23 +40,32 @@ const app = {
 			client.send(message)
 		}
 	},
-	handleMessage (client, rawMessage) {
+	async handleMessage (client, rawMessage) {
 		console.log('=>', rawMessage)
 		const message = JSON.parse(rawMessage)
-		const handlers = {
+		const specialHandlers = {
 			auth: app.handleAuth,
 			ping: app.handlePing,
 			'ot:delta': app.handleOtDelta
 		}
-		if (handlers[message[0]]) {
-			handlers[message[0]](client, message)
+		const normalHandlers = {
+			'board:create': app.handleBoardCreate
+		}
+		if (specialHandlers[message[0]]) {
+			specialHandlers[message[0]](client, message)
+		}
+		if (normalHandlers[message[0]]) {
+			// TODO error handling
+			const result = await normalHandlers[message[0]](client, message)
+			app.send(client, ['success', message[1], result])
+			app.broadcast(client, [message[0], result])
 		}
 	},
 	handleAuth (client, message) {
 		// TODO check token
 		app.send(client, ['authenticated'])
 		const payload = ['joined', {
-			boards: app.state.boards,
+			boards: Object.values(app.state.boards),
 			channels: Object.entries(app.channels).reduce((acc, [id, {lastRevision}]) => {
 				acc[id] = {lastRevision}
 				return acc
@@ -94,6 +111,23 @@ const app = {
 	handleBoardChange (boardId, delta) {
 		const board = app.state.boards[boardId]
 		applyOpsToState(board, delta.ops)
+		// just fire off a save
+		Board.update({
+			id: boardId,
+			delta: JSON.stringify(board)
+		})
+	},
+	async handleBoardCreate (client, message) {
+		const data = message[2]
+		const id = data[0].insert._id
+		if (app.state.boards[id]) throw new Error('id already taken!')
+		const board = new Board({
+			id,
+			delta: JSON.stringify(data)
+		})
+		await board.save()
+		app.state.boards[id] = data
+		return app.state.boards[id]
 	}
 }
 
