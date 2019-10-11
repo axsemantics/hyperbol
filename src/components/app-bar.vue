@@ -1,5 +1,6 @@
 <template lang="pug">
 .c-app-bar(v-if="boards")
+	img.avatar(:src="user.profile.picture")
 	bunt-button(@click="$store.dispatch('createBoard')") new board
 	.boards
 		router-link.board(v-for="board in boards", :to="{name: 'board', params: {boardId: board[0].insert._id}}") {{ board[0].insert.name }}
@@ -14,7 +15,7 @@ export default {
 		}
 	},
 	computed: {
-		...mapState(['boards'])
+		...mapState(['user', 'boards'])
 	},
 	created () {},
 	mounted () {
@@ -31,7 +32,18 @@ export default {
 	width: 300px
 	flex: none
 	card()
+	display: flex
+	flex-direction: column
+	align-items: center
+	z-index: 1000
+	.avatar
+		height: 52px
+		border-radius: 50%
+		margin: 16px
 	.boards
+		margin: 16px
 		display: flex
 		flex-direction: column
+		.board
+			font-size: 18px
 </style>

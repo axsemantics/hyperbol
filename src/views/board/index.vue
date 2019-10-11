@@ -1,6 +1,9 @@
 <template lang="pug">
 .v-board(v-if="board", :class="{dragging: draggingCard}")
-	lane(v-for="lane of LANES", :lane="lane", :board="board", @startDragging="startDragging", :draggingCard="draggingCard")
+	.board-header
+		input.name(type="text", :value="board.name", @input="changeBoardName")
+	.lanes
+		lane(v-for="lane of LANES", :lane="lane", :board="board", @startDragging="startDragging", :draggingCard="draggingCard")
 	card(v-if="draggingCard", :card="draggingCard", :board="board", :dragClone="true", :style="dragCloneStyle")
 </template>
 <script>
@@ -48,6 +51,9 @@ export default {
 		document.removeEventListener('mousemove', this.handleMousemove)
 	},
 	methods: {
+		changeBoardName (event) {
+			this.$store.dispatch('updateBoard', {board: this.board, update: {name: event.target.value}})
+		},
 		startDragging ({card, event}) {
 			this.draggingCard = Object.assign({}, card)
 			this.draggingPosition = {
@@ -145,9 +151,25 @@ export default {
 .v-board
 	flex: auto
 	display: flex
-	justify-content: center
-	user-select: none
+	flex-direction: column
 	min-height: 0
+	.board-header
+		height: 52px
+		flex: none
+		background-color: $clr-white
+		border-bottom: border-separator()
+		display: flex
+		align-items: center
+		padding: 0 16px
+		.name
+			font-size: 18px
+			border: none
+			outline: none
+	.lanes
+		flex: auto
+		display: flex
+		justify-content: center
+		user-select: none
 	&.dragging *
 		cursor: grabbing !important
 </style>

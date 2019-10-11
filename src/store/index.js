@@ -48,6 +48,11 @@ export default new Vuex.Store({
 				Vue.set(state.boards, board[0].insert._id, board)
 			})
 		},
+		updateBoard ({state}, {board, update}) {
+			const boardDelta = new Delta().retain(1, {set: update})
+			api.quidditch.sendDelta(`board:${board._id}`, boardDelta)
+			applyOpsToState(state.boards[board._id], boardDelta.ops, Vue.set, Vue.delete)
+		},
 		addCard ({state}, {board, lane, order}) {
 			const id = uuid()
 			const card = {
