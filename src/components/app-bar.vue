@@ -23,5 +23,6 @@ export default {
 
 .c-app-bar
 	height: 54px
+	flex: none
 	card()
 </style>

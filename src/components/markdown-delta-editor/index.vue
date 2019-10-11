@@ -75,8 +75,17 @@ export default {
 		}
 	},
 	methods: {
+		focus () {
+			this.selection.focusOffset = 0
+			this.selection.anchorOffset = 0
+			this.selection.isFocused = true
+			this.$refs.textarea.focus({preventScroll: true})
+		},
 		handleFocus () {},
-		handleBlur () {},
+		handleBlur () {
+			this.selection.isFocused = false
+			this.$emit('blur')
+		},
 		handleInput () {
 			const textarea = this.$refs.textarea
 			if (textarea.value.length === 1) {
@@ -169,7 +178,6 @@ export default {
 		},
 		handleMousedown (event) {
 			event.preventDefault()
-			this.selection.isFocused = true
 			const {node, offset: partialOffset} = this.getCaretPositionFromEvent(event)
 			let offset = this.findOffsetForNode(node, partialOffset)
 			this.selection.focusOffset = offset

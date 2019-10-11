@@ -35,7 +35,6 @@ const auth = {
 			const soon = moment().add(30, 'minutes')
 			if (soon.isAfter(expiry)) {
 				console.log('expired')
-				debugger
 				localStorage.removeItem('id_token')
 				localStorage.removeItem('access_token')
 				auth.silentAuth()

@@ -60,6 +60,7 @@ export default {
 			}
 		},
 		handleMouseup () {
+			if (!this.draggingCard) return
 			this.$store.dispatch('updateCard', {
 				board: this.board,
 				card: this.draggingCard,
@@ -146,6 +147,7 @@ export default {
 	display: flex
 	justify-content: center
 	user-select: none
+	min-height: 0
 	&.dragging *
 		cursor: grabbing !important
 </style>

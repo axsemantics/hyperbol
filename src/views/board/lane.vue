@@ -1,9 +1,9 @@
 <template lang="pug">
-.c-lane(:data-lane="lane", v-scrollbar.y="")
+.c-lane(:data-lane="lane")
 	.lane-header {{ lane }}
 		bunt-button(@click="addCard") add card
-	.cards
-		card(v-for="card of cards", :key="card.id", :card="card", :board="board", @startDragging="$emit('startDragging', {card, event: $event})", :dragShadow="draggingCard && card._id === draggingCard._id")
+	transition-group.cards(name="cards", tag="div", v-scrollbar.y="")
+		card(v-for="(card, index) of cards", :class="{first: index === 0}", :key="card._id", :card="card", :board="board", @startDragging="$emit('startDragging', {card, event: $event})", :dragShadow="draggingCard && card._id === draggingCard._id", ref="cards")
 </template>
 <script>
 import Big from 'big.js'
@@ -39,6 +39,11 @@ export default {
 				board: this.board,
 				lane: this.lane,
 				order: this.cards[0]?.order ? new Big(this.cards[0]?.order).minus(1).toString() : '0'
+			}).then(id => {
+				this.$nextTick(() => {
+					const el = this.$refs.cards.find(el => el.card._id === id)
+					if (el) el.focus()
+				})
 			})
 		}
 	}
@@ -50,6 +55,8 @@ export default {
 .c-lane
 	width: 300px
 	padding-top: 32px
+	display: flex
+	flex-direction: column
 	.lane-header
 		text-transform: uppercase
 		color: $clr-secondary-text-light
@@ -63,5 +70,16 @@ export default {
 	.bunt-button
 		button-style(style: clear)
 	.cards
-		padding: 16px
+		flex: auto
+		min-height: 0
+		display: flex
+		flex-direction: column
+		> .first
+			margin-top: 16px
+	.cards-enter-active, .cards-leave-active
+		transition: all .3s
+	.cards-enter, .cards-leave-to
+		opacity: 0
+	.cards-move
+		transition: transform .2s
 </style>
