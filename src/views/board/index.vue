@@ -2,12 +2,16 @@
 .v-board(v-if="board", :class="{dragging: draggingCard}")
 	.board-header
 		input.name(type="text", :value="board.name", @input="changeBoardName")
+		.users
+			bunt-button#btn-join-board(v-if="!hasJoinedBoard", @click="joinBoard") join
+			.user(v-for="user of users")
+				img(:src="user.profile.picture", :title="user.profile.email")
 	.lanes
 		lane(v-for="lane of LANES", :lane="lane", :board="board", @startDragging="startDragging", :draggingCard="draggingCard")
 	card(v-if="draggingCard", :card="draggingCard", :board="board", :dragClone="true", :style="dragCloneStyle")
 </template>
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import Big from 'big.js'
 import Card from './card'
 import Lane from './lane'
@@ -19,6 +23,7 @@ const LANES = [
 	'done'
 ]
 export default {
+	name: 'Board',
 	components: { Card, Lane },
 	data () {
 		return {
@@ -30,6 +35,7 @@ export default {
 	},
 	computed: {
 		...mapState(['boards']),
+		...mapGetters(['userId']),
 		board () {
 			return this.boards?.[this.$route.params.boardId]?.[0].insert // naively unpack root delta
 		},
@@ -39,6 +45,12 @@ export default {
 				top: this.draggingPosition.y - this.draggingOffset.y + 'px',
 				left: this.draggingPosition.x - this.draggingOffset.x + 'px'
 			}
+		},
+		hasJoinedBoard () {
+			return this.board.users.includes(this.userId)
+		},
+		users () {
+			return this.board.users.map(userId => this.$store.state.users[userId])
 		}
 	},
 	created () {},
@@ -53,6 +65,9 @@ export default {
 	methods: {
 		changeBoardName (event) {
 			this.$store.dispatch('updateBoard', {board: this.board, update: {name: event.target.value}})
+		},
+		joinBoard () {
+			this.$store.dispatch('joinBoard', {board: this.board})
 		},
 		startDragging ({card, event}) {
 			this.draggingCard = Object.assign({}, card)
@@ -154,17 +169,31 @@ export default {
 	flex-direction: column
 	min-height: 0
 	.board-header
-		height: 52px
+		height: 64px
 		flex: none
 		background-color: $clr-white
 		border-bottom: border-separator()
 		display: flex
 		align-items: center
+		justify-content: space-between
 		padding: 0 16px
 		.name
 			font-size: 18px
 			border: none
 			outline: none
+		.users
+			display: flex
+			align-items: center
+			#btn-join-board
+				button-style(style: 'clear', color: $clr-primary)
+			.user
+				display: flex
+				img
+					height: 52px
+					border-radius: 50%
+					border: 2px solid $clr-white
+				&:not(:first-child)
+					margin-left: -16px
 	.lanes
 		flex: auto
 		display: flex

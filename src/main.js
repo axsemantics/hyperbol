@@ -28,7 +28,7 @@ if (auth.token) {
 	store.commit('authenticate', auth.token)
 	api.init()
 	auth.getProfile().then(profile => {
-		store.commit('setProfile', profile)
+		store.dispatch('setProfile', profile)
 	})
 }
 

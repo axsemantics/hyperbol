@@ -1,10 +1,21 @@
+const util = require('util')
 const WebSocket = require('ws')
 const { Delta, applyOpsToState } = require('quidditch')
+const jwt = require('jsonwebtoken')
+const JwksClient = require('jwks-rsa')
 require('../shared/delta-types')
-const { Board } = require('./db')
+const { User, Board } = require('./db')
+
+const config = require('./config.dev.js')
+
+const jwksClient = JwksClient({
+	jwksUri: `https://${config.auth.domain}/.well-known/jwks.json`,
+	cache: true
+})
 
 const app = {
 	state: {
+		users: {},
 		boards: {
 			// test: new Delta().insert({_t: 'board', _id: 'test', name: 'Test', cards: {}}).ops
 		}
@@ -20,6 +31,13 @@ const app = {
 			console.log('loaded boards', results)
 			app.state.boards = results.reduce((acc, board) => {
 				acc[board.id] = JSON.parse(board.delta)
+				return acc
+			}, {})
+		})
+		User.scan().exec().then(results => {
+			console.log('loaded users', results)
+			app.state.users = results.reduce((acc, user) => {
+				acc[user.id] = {id: user.id, profile: JSON.parse(user.profile)}
 				return acc
 			}, {})
 		})
@@ -49,6 +67,7 @@ const app = {
 			'ot:delta': app.handleOtDelta
 		}
 		const normalHandlers = {
+			'user:update': app.handleUserUpdate,
 			'board:create': app.handleBoardCreate
 		}
 		if (specialHandlers[message[0]]) {
@@ -61,10 +80,24 @@ const app = {
 			app.broadcast(client, [message[0], result])
 		}
 	},
-	handleAuth (client, message) {
-		// TODO check token
+	async handleAuth (client, message) {
+		const token = message[1].token
+		const getKey = function (header, callback) {
+			jwksClient.getSigningKey(header.kid, function (err, key) {
+				if (err) callback(err)
+				var signingKey = key.publicKey || key.rsaPublicKey
+				callback(null, signingKey)
+			})
+		}
+		const decodedToken = await util.promisify(jwt.verify)(token, getKey, {
+			algorithms: ['RS256'],
+			audience: config.auth.audience,
+			issuer: config.auth.issuer
+		})
+		client.userId = decodedToken.sub
 		app.send(client, ['authenticated'])
 		const payload = ['joined', {
+			users: Object.values(app.state.users),
 			boards: Object.values(app.state.boards),
 			channels: Object.entries(app.channels).reduce((acc, [id, {lastRevision}]) => {
 				acc[id] = {lastRevision}
@@ -107,6 +140,17 @@ const app = {
 		}
 		app.send(client, ['success', message[1], {rev: channel.lastRevision}])
 		app.broadcast(client, ['ot:delta', channelName, {delta: delta.ops, rev: channel.lastRevision}])
+	},
+	async handleUserUpdate (client, message) {
+		const id = client.userId
+		const profile = message[2].profile
+		const user = new User({
+			id,
+			profile: JSON.stringify(profile)
+		})
+		await user.save()
+		app.state.users[id] = {id, profile}
+		return user
 	},
 	handleBoardChange (boardId, delta) {
 		const board = app.state.boards[boardId]

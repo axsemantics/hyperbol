@@ -14,23 +14,33 @@ export default new Vuex.Store({
 			token: null,
 			profile: null
 		},
+		users: {},
 		boards: null
+	},
+	getters: {
+		userId (state) {
+			return state.user.profile?.sub
+		}
 	},
 	mutations: {
 		authenticate (state, token) {
 			state.user.authenticated = true
 			state.user.token = token
-		},
-		setProfile (state, profile) {
-			state.user.profile = profile
 		}
 	},
 	actions: {
-		'quidditch::joined' ({state}, serverState) {
+		'quidditch::joined' ({state, getters}, serverState) {
 			state.boards = serverState.boards.reduce((acc, board) => {
 				acc[board[0].insert._id] = board
 				return acc
 			}, {})
+			for (const user of serverState.users) {
+				if (user.id === getters.userId) continue
+				state.users[user.id] = user
+			}
+			if (state.user.profile) {
+				api.quidditch.call('user:update', {profile: state.user.profile})
+			}
 		},
 		'quidditch::ot:delta' ({state}, {channel, delta}) {
 			const [matched, type, id] = channel.match(OT_CHANNEL_REGEX)
@@ -41,15 +51,41 @@ export default new Vuex.Store({
 					break
 			}
 		},
-		createBoard ({state}) {
+		'quidditch::user:update' ({state}, user) {
+			state.users[user.id] = user
+		},
+		setProfile ({state}, profile) {
+			state.user.profile = profile
+			state.users[profile.sub] = {
+				id: profile.sub,
+				profile
+			}
+			if (api.quidditch.socketState === 'open') {
+				api.quidditch.call('user:update', {profile: state.user.profile})
+			}
+		},
+		createBoard ({state, getters}) {
 			api.quidditch.call('board:create',
-				[{insert: {_t: 'board', _id: uuid(), name: 'New Board', cards: {}}}]
+				[{insert: {
+					_t: 'board',
+					_id: uuid(),
+					name: 'New Board',
+					users: [getters.userId],
+					cards: {}
+				}}]
 			).then(board => {
 				Vue.set(state.boards, board[0].insert._id, board)
 			})
 		},
 		updateBoard ({state}, {board, update}) {
 			const boardDelta = new Delta().retain(1, {set: update})
+			api.quidditch.sendDelta(`board:${board._id}`, boardDelta)
+			applyOpsToState(state.boards[board._id], boardDelta.ops, Vue.set, Vue.delete)
+		},
+		joinBoard ({state, getters}, {board}) {
+			const users = board.users.slice()
+			users.push(getters.userId) // TODO not multiplayer-safe
+			const boardDelta = new Delta().retain(1, {set: {users}})
 			api.quidditch.sendDelta(`board:${board._id}`, boardDelta)
 			applyOpsToState(state.boards[board._id], boardDelta.ops, Vue.set, Vue.delete)
 		},

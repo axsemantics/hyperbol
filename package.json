@@ -17,6 +17,8 @@
     "buntpapier": "^1.6.3",
     "core-js": "^2.6.5",
     "dynamoose": "^1.11.1",
+    "jsonwebtoken": "^8.5.1",
+    "jwks-rsa": "^1.6.0",
     "jwt-decode": "^2.2.0",
     "moment": "^2.24.0",
     "nodemon": "^1.19.2",

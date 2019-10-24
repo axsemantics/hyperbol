@@ -1,5 +1,5 @@
 <template lang="pug">
-.c-app-bar(v-if="boards")
+.c-app-bar(v-if="boards && user.profile")
 	img.avatar(:src="user.profile.picture")
 	bunt-button(@click="$store.dispatch('createBoard')") new board
 	.boards
