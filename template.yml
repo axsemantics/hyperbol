@@ -1,0 +1,74 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  serviceDockerImage:
+    Type: String
+
+Resources:
+  UserTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: Id
+          AttributeType: N
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: Id
+          KeyType: HASH
+    DeletionPolicy: Delete
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !ImportValue TestVpc
+      GroupDescription: hyperbol-api
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !ImportValue HyperbolElbSecurityGroup
+          Description: allow http from loadbalancer
+          FromPort: 8000
+          IpProtocol: tcp
+          ToPort: 8000
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Image: !Ref serviceDockerImage
+          Name: service
+          PortMappings:
+            - ContainerPort: 8000
+              Protocol: tcp
+      Cpu: "256"
+      ExecutionRoleArn: !ImportValue HyperbolApiTaskExecutionRole
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      # TaskRoleArn: String
+
+  Cluster:
+    Type: AWS::ECS::Cluster
+
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref Cluster
+      DesiredCount: 1
+      LaunchType: FARGATE
+      PlatformVersion: "1.3.0"
+      PropagateTags: TASK_DEFINITION
+      TaskDefinition: !Ref TaskDefinition
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - !Ref SecurityGroup
+          Subnets:
+            - !ImportValue TestVpcSubnetPrivateA
+            - !ImportValue TestVpcSubnetPrivateB
+            - !ImportValue TestVpcSubnetPrivateC
+      LoadBalancers:
+        - ContainerName: service
+          ContainerPort: 8000
+          TargetGroupArn: !ImportValue HyperbolTargetGroup
