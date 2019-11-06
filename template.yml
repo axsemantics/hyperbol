@@ -96,7 +96,7 @@ Resources:
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
-      # TaskRoleArn: String
+      TaskRoleArn: !GetAtt TaskRole.Arn
 
   Cluster:
     Type: AWS::ECS::Cluster
