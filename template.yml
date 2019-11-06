@@ -52,7 +52,7 @@ Resources:
             Principal:
               Service: ecs-tasks.amazonaws.com
               Action: sts:AssumeRole
-          Path: !Sub "/${AWS::StackName}/"
+        Path: !Sub "/${AWS::StackName}/"
 
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
