@@ -6,7 +6,7 @@ const JwksClient = require('jwks-rsa')
 require('../shared/delta-types')
 const { User, Board } = require('./db')
 
-const config = require('./config.dev.js')
+const config = require('./config.js')
 
 const jwksClient = JwksClient({
 	jwksUri: `https://${config.auth.domain}/.well-known/jwks.json`,
