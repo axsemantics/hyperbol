@@ -1,5 +1,5 @@
 const dynamoose = require('dynamoose')
-dynamoose.local(process.env.DYNAMODB_ENDPOINT)
+
 const UserSchema = new dynamoose.Schema({
 	id: {
 		type: String, // magic auth0 string
@@ -10,8 +10,6 @@ const UserSchema = new dynamoose.Schema({
 		required: true
 	},
 })
-
-const User = dynamoose.model('User', UserSchema)
 
 const BoardSchema = new dynamoose.Schema({
 	id: {
@@ -24,6 +22,18 @@ const BoardSchema = new dynamoose.Schema({
 	},
 })
 
-const Board = dynamoose.model('Board', BoardSchema)
+let User, Board
+
+if (process.env.NODE_ENV !== 'production') {
+	console.log('using local database')
+	dynamoose.local(process.env.DYNAMODB_ENDPOINT)
+
+	User = dynamoose.model('User', UserSchema)
+	Board = dynamoose.model('Board', BoardSchema)
+} else {
+	console.log('using aws database')
+	User = dynamoose.model(process.env.USER_TABLE, UserSchema)
+	Board = dynamoose.model(process.env.BOARD_TABLE, BoardSchema)
+}
 
 module.exports = { User, Board }
