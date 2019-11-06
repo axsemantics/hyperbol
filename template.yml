@@ -12,8 +12,6 @@ Resources:
       AttributeDefinitions:
         - AttributeName: id
           AttributeType: S
-        - AttributeName: profile
-          AttributeType: S
       BillingMode: PAY_PER_REQUEST
       KeySchema:
         - AttributeName: id
@@ -25,8 +23,6 @@ Resources:
     Properties:
       AttributeDefinitions:
         - AttributeName: id
-          AttributeType: S
-        - AttributeName: delta
           AttributeType: S
       BillingMode: PAY_PER_REQUEST
       KeySchema:
