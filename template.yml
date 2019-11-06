@@ -90,6 +90,8 @@ Resources:
               Value: !Ref UserTable
             - Name: BOARD_TABLE
               Value: !Ref BoardTable
+          LogConfiguration:
+            LogDriver: awslogs
       Cpu: "256"
       ExecutionRoleArn: !ImportValue HyperbolApiTaskExecutionRole
       Memory: "512"
