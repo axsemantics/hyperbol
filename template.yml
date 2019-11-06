@@ -51,7 +51,7 @@ Resources:
           - Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
-              Action: sts:AssumeRole
+            Action: sts:AssumeRole
       Path: !Sub "/${AWS::StackName}/"
       Policies:
         - PolicyName: DynamoDb
