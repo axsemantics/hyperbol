@@ -9,7 +9,6 @@ phases:
   build:
     commands:
       - npm run build
-      - cp robots.txt dist/robots.txt
 
 artifacts:
   base-directory: dist
