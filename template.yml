@@ -92,6 +92,9 @@ Resources:
               Value: !Ref BoardTable
           LogConfiguration:
             LogDriver: awslogs
+            Options:
+              awslogs-create-group: "true"
+
       Cpu: "256"
       ExecutionRoleArn: !ImportValue HyperbolApiTaskExecutionRole
       Memory: "512"
