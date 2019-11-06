@@ -73,11 +73,16 @@ Resources:
                   - !GetAtt UserTable.Arn
                   - !GetAtt BoardTable.Arn
 
+  ApiLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 60
+
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
       ContainerDefinitions:
-        - Image: !Ref serviceDockerImage
+        - Image: !Ref apiDockerImage
           Name: api
           Command:
             - run
@@ -93,7 +98,8 @@ Resources:
           LogConfiguration:
             LogDriver: awslogs
             Options:
-              awslogs-create-group: "true"
+              awslogs-group: !Ref ApiLogs
+              awslogs-region: !Ref AWS::Region
 
       Cpu: "256"
       ExecutionRoleArn: !ImportValue HyperbolApiTaskExecutionRole
