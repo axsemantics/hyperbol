@@ -2,7 +2,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
 Parameters:
-  serviceDockerImage:
+  apiDockerImage:
     Type: String
 
 Resources:
@@ -78,7 +78,7 @@ Resources:
     Properties:
       ContainerDefinitions:
         - Image: !Ref serviceDockerImage
-          Name: service
+          Name: api
           Command:
             - run
             - server
@@ -125,6 +125,6 @@ Resources:
             - !ImportValue TestVpcSubnetPrivateB
             - !ImportValue TestVpcSubnetPrivateC
       LoadBalancers:
-        - ContainerName: service
+        - ContainerName: api
           ContainerPort: 8000
           TargetGroupArn: !ImportValue HyperbolTargetGroup

@@ -19,7 +19,7 @@ phases:
       - eval $(aws ecr get-login --no-include-email)
       - docker push "${DOCKER_IMAGE_NAME}"
       - cp template.yml build_artifacts/${DEPLOY_TEMPLATE_FILE_NAME}
-      - 'echo "{\"Parameters\": {\"serviceDockerImage\": \"${DOCKER_IMAGE_NAME}\"}}" > build_artifacts/${DEPLOY_TEMPLATE_PARAMETERS_FILE_NAME}'
+      - 'echo "{\"Parameters\": {\"apiDockerImage\": \"${DOCKER_IMAGE_NAME}\"}}" > build_artifacts/${DEPLOY_TEMPLATE_PARAMETERS_FILE_NAME}'
 
 artifacts:
   base-directory: ./build_artifacts
