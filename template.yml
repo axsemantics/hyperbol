@@ -73,11 +73,6 @@ Resources:
                   - !GetAtt UserTable.Arn
                   - !GetAtt BoardTable.Arn
 
-  LogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      RetentionInDays: 60
-
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -95,12 +90,6 @@ Resources:
               Value: !Ref UserTable
             - Name: BOARD_TABLE
               Value: !Ref BoardTable
-          LogConfiguration:
-            LogDriver: awslogs
-            Options:
-              awslogs-group: !Ref LogGroup
-              awslogs-region: !Ref AWS::Region
-              awslogs-stream-prefix: api
 
       Cpu: "256"
       ExecutionRoleArn: !ImportValue HyperbolApiTaskExecutionRole
