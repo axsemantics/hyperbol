@@ -18,6 +18,18 @@ Resources:
           KeyType: HASH
     DeletionPolicy: Delete
 
+  BoardTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: Id
+          AttributeType: N
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: Id
+          KeyType: HASH
+    DeletionPolicy: Delete
+
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -39,6 +51,11 @@ Resources:
           PortMappings:
             - ContainerPort: 8000
               Protocol: tcp
+          Environment:
+            - Name: USER_TABLE
+              Value: !Ref UserTable
+            - Name: BOARD_TABLE
+              Value: !Ref BoardTable
       Cpu: "256"
       ExecutionRoleArn: !ImportValue HyperbolApiTaskExecutionRole
       Memory: "512"
