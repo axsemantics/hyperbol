@@ -52,26 +52,26 @@ Resources:
             Principal:
               Service: ecs-tasks.amazonaws.com
               Action: sts:AssumeRole
-        Path: !Sub "/${AWS::StackName}/"
-        Policies:
-          - PolicyName: DynamoDb
-            PolicyDocument:
-              Version: "2012-10-17"
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - dynamodb:BatchGetItem
-                    - dynamodb:BatchWriteItem
-                    - dynamodb:DeleteItem
-                    - dynamodb:DescribeTable
-                    - dynamodb:GetItem
-                    - dynamodb:PutItem
-                    - dynamodb:Query
-                    - dynamodb:Scan
-                    - dynamodb:UpdateItem
-                  Resource:
-                    - !GetAtt UserTable.Arn
-                    - !GetAtt BoardTable.Arn
+      Path: !Sub "/${AWS::StackName}/"
+      Policies:
+        - PolicyName: DynamoDb
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:BatchGetItem
+                  - dynamodb:BatchWriteItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:DescribeTable
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !GetAtt UserTable.Arn
+                  - !GetAtt BoardTable.Arn
 
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
