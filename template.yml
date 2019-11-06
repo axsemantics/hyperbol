@@ -52,6 +52,9 @@ Resources:
       ContainerDefinitions:
         - Image: !Ref serviceDockerImage
           Name: service
+          Command:
+            - run
+            - server
           PortMappings:
             - ContainerPort: 8000
               Protocol: tcp
