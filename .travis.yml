@@ -1,0 +1,17 @@
+---
+dist: bionic
+language: python
+python:
+  - 3.8
+
+install:
+  - pip install cfn-lint yamllint
+  - git clone https://github.com/aexeagmbh/cfn-lint-rules.git cfn-lint-rules
+
+script:
+  - cfn-lint
+  - yamllint --strict *.yml .yamllint .cfnlintrc
+
+notifications:
+  email: false
+  slack: internal-ax:jlX1gT2R4pjKXRPfcDPWjMhO

@@ -1,3 +1,4 @@
+---
 version: "2"
 
 services:
@@ -9,10 +10,10 @@ services:
     build:
       context: .
     volumes:
-     - ./dist:/opt/code/dist
-     - ./src:/opt/code/src
-     - ./server:/opt/code/server
-     - ./shared:/opt/code/shared
+      - ./dist:/opt/code/dist
+      - ./src:/opt/code/src
+      - ./server:/opt/code/server
+      - ./shared:/opt/code/shared
     command: run dev:server
     environment:
       - DYNAMODB_ENDPOINT=http://dynamodb:8000
@@ -20,4 +21,4 @@ services:
       - AWS_SECRET_ACCESS_KEY=derp
       - AWS_REGION=eu-west-1
     ports:
-     - "8000:8000"
+      - "8000:8000"

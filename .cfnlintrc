@@ -1,0 +1,11 @@
+---
+templates:
+  - template.yml
+include_checks:
+  - I
+regions:
+  - eu-west-1
+  - us-east-1
+  - us-east-2
+append_rules:
+  - cfn-lint-rules/rules/
