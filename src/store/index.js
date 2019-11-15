@@ -52,7 +52,7 @@ export default new Vuex.Store({
 			}
 		},
 		'quidditch::user:update' ({state}, user) {
-			state.users[user.id] = user
+			Vue.set(state.users, user.id, user)
 		},
 		setProfile ({state}, profile) {
 			state.user.profile = profile
@@ -89,13 +89,14 @@ export default new Vuex.Store({
 			api.quidditch.sendDelta(`board:${board._id}`, boardDelta)
 			applyOpsToState(state.boards[board._id], boardDelta.ops, Vue.set, Vue.delete)
 		},
-		addCard ({state}, {board, lane, order}) {
+		addCard ({state, getters}, {board, lane, order}) {
 			const id = uuid()
 			const card = {
 				_t: 'card',
 				lane,
 				text: [],
-				order
+				order,
+				owner: getters.userId
 			}
 			const delta = new Delta().retain(1, {subOps: {cards: new Delta().insert(id, {set: card}).ops}})
 			api.quidditch.sendDelta(`board:${board._id}`, delta)

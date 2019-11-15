@@ -1,6 +1,9 @@
 <template lang="pug">
 .c-card(@mousedown="onMousedown", :data-card="card._id", :class="{'drag-clone': dragClone, 'drag-shadow': dragShadow}")
 	markdown-delta-editor(ref="editor", :ops="card.text", @update="handleDeltaUpdate", @blur="handleBlur")
+	.owner
+		img(:src="owner.profile.picture", :title="owner.profile.email", draggable="false")
+		.name {{ owner.profile.nickname || owner.profile.name }}
 </template>
 <script>
 import MarkdownDeltaEditor from 'components/markdown-delta-editor'
@@ -22,7 +25,11 @@ export default {
 		return {
 		}
 	},
-	computed: {},
+	computed: {
+		owner () {
+			return this.$store.state.users[this.card.owner]
+		}
+	},
 	created () {},
 	methods: {
 		onMousedown (event) {
@@ -47,11 +54,14 @@ export default {
 
 .c-card
 	card()
-	min-height: 100px
-	padding: 16px 0
+	box-sizing: border-box
+	min-height: 128px
+	padding: 16px 0 8px 0
 	margin: 0px 16px 8px 16px
 	cursor: grab
-
+	display: flex
+	flex-direction: column
+	justify-content: space-between
 	&.drag-clone
 		pointer-events: none
 		position: absolute
@@ -59,4 +69,17 @@ export default {
 
 	&.drag-shadow
 		opacity: 0
+
+	.owner
+		display: flex
+		align-items: center
+		padding: 0 8px
+		user-select: none
+		img
+			height: 28px
+			border-radius: 50%
+			margin-right: 8px
+		.name
+			color: $clr-secondary-text-light
+			font-size: 12px
 </style>

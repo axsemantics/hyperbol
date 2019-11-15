@@ -43,7 +43,7 @@ export default {
 			if (!this.draggingPosition) return
 			return {
 				top: this.draggingPosition.y - this.draggingOffset.y + 'px',
-				left: this.draggingPosition.x - this.draggingOffset.x + 'px'
+				left: this.draggingPosition.x - this.draggingOffset.x - 16 + 'px'
 			}
 		},
 		hasJoinedBoard () {
@@ -75,9 +75,11 @@ export default {
 				x: event.clientX,
 				y: event.clientY
 			}
+			const cardEl = event.target.closest('.c-card')
+			const cardElRect = cardEl.getBoundingClientRect()
 			this.draggingOffset = {
-				x: event.offsetX,
-				y: event.offsetY
+				x: event.clientX - cardElRect.x,
+				y: event.clientY - cardElRect.y
 			}
 		},
 		handleMouseup () {
@@ -199,6 +201,7 @@ export default {
 		display: flex
 		justify-content: center
 		user-select: none
+		min-height: 0
 	&.dragging *
 		cursor: grabbing !important
 </style>

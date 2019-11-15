@@ -150,7 +150,7 @@ const app = {
 		})
 		await user.save()
 		app.state.users[id] = {id, profile}
-		return user
+		return app.state.users[id]
 	},
 	handleBoardChange (boardId, delta) {
 		const board = app.state.boards[boardId]

@@ -7,7 +7,7 @@ setSubtypes({
 	},
 	card: {
 		text: BASE_TYPES.DELTA,
-		assignee: String,
+		owner: String,
 		lane: String,
 		order: String
 	},
