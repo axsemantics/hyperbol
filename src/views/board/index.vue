@@ -12,7 +12,8 @@
 		h1 Get ready!
 		.participants
 			.participant(v-for="participant of participants", :class="{joined: participant.joined, focused: participant.user.id === focusedParticipant}", @click="joinStandup(participant.user.id, !participant.joined)")
-				img(:src="participant.user.profile.picture", :title="participant.user.profile.email", draggable="false")
+				.participant-inner
+					img(:src="participant.user.profile.picture", :title="participant.user.profile.email", draggable="false")
 		bunt-button#btn-join-standup(v-if="ownStandupParticipant && !ownStandupParticipant.joined", @click="joinStandup(userId, true)") Join
 		bunt-button#btn-begin-standup(v-else, @click="beginStandup") Begin!
 	.lanes(v-else)
@@ -297,22 +298,45 @@ export default {
 
 		.participants
 			display: flex
+			user-select: none
 			.participant
 				cursor: pointer
+				position: relative
+				.participant-inner
+					border-radius: 50%
+					height: 120px
+					width: @height
+					box-sizing: border-box
+				img
+					height: 100%
+					border-radius: 50%
 				&:not(:last-child)
 					margin-right: 8px
 				&:not(.joined)
-					opacity: .6
+					.participant-inner
+						border: 6px solid $clr-danger
 					img
-						border: 4px solid transparent
+						opacity: .6
+					&::after
+						content: ''
+						display: block
+						background-color: $clr-danger
+						width: calc(100% - 4px)
+						height: 6px
+						position: absolute
+						top: calc(50% - 4px)
+						transform: rotate(45deg)
 				&.joined
-					img
-						border: 4px solid $clr-primary
-				&.focused
-					background-color: $clr-disabled-text-light
-				img
-					height: 120px
-					border-radius: 50%
+					.participant-inner
+						border: 6px solid $clr-primary
+				&.focused::before
+					content: ''
+					display: block
+					height: 6px
+					width: 100%
+					position: absolute
+					bottom: -8px
+					background-color: $clr-secondary-text-light
 		#btn-join-standup, #btn-begin-standup
 			button-style(color: $clr-primary, size: large)
 			margin-top: 32px
