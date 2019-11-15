@@ -15,7 +15,8 @@ export default new Vuex.Store({
 			profile: null
 		},
 		users: {},
-		boards: null
+		boards: null,
+		standups: null
 	},
 	getters: {
 		userId (state) {
@@ -38,6 +39,10 @@ export default new Vuex.Store({
 				if (user.id === getters.userId) continue
 				state.users[user.id] = user
 			}
+			state.standups = serverState.standups.reduce((acc, standup) => {
+				acc[standup.board] = standup
+				return acc
+			}, {})
 			if (state.user.profile) {
 				api.quidditch.call('user:update', {profile: state.user.profile})
 			}
@@ -53,6 +58,13 @@ export default new Vuex.Store({
 		},
 		'quidditch::user:update' ({state}, user) {
 			Vue.set(state.users, user.id, user)
+		},
+		'quidditch::standup:start' ({state}, standup) {
+			Vue.set(state.standups, standup.board, standup)
+		},
+		'quidditch::standup:join' ({state}, {board, user, join}) {
+			const participant = state.standups[board].participants.find(({user: userId}) => user === userId)
+			participant.joined = join
 		},
 		setProfile ({state}, profile) {
 			state.user.profile = profile
@@ -118,6 +130,15 @@ export default new Vuex.Store({
 			api.quidditch.sendDelta(`board:${board._id}`, boardDelta)
 			applyOpsToState(state.boards[board._id], boardDelta.ops, Vue.set, Vue.delete)
 			console.log(state.boards[board._id])
+		},
+		async startStandup ({state}, {board}) {
+			const standup = await api.quidditch.call('standup:start', {board: board._id})
+			Vue.set(state.standups, standup.board, standup)
+		},
+		async joinStandup ({state}, {board, user, join}) {
+			await api.quidditch.call('standup:join', {board: board._id, user, join})
+			const participant = state.standups[board._id].participants.find(({user: userId}) => user === userId)
+			participant.joined = join
 		}
 	}
 })

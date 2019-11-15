@@ -16,9 +16,8 @@ const jwksClient = JwksClient({
 const app = {
 	state: {
 		users: {},
-		boards: {
-			// test: new Delta().insert({_t: 'board', _id: 'test', name: 'Test', cards: {}}).ops
-		}
+		boards: {},
+		standups: {}
 	},
 	channels: {},
 	async init () {
@@ -68,7 +67,9 @@ const app = {
 		}
 		const normalHandlers = {
 			'user:update': app.handleUserUpdate,
-			'board:create': app.handleBoardCreate
+			'board:create': app.handleBoardCreate,
+			'standup:start': app.handleStandupStart,
+			'standup:join': app.handleStandupJoin
 		}
 		if (specialHandlers[message[0]]) {
 			specialHandlers[message[0]](client, message)
@@ -99,6 +100,7 @@ const app = {
 		const payload = ['joined', {
 			users: Object.values(app.state.users),
 			boards: Object.values(app.state.boards),
+			standups: Object.values(app.state.standups),
 			channels: Object.entries(app.channels).reduce((acc, [id, {lastRevision}]) => {
 				acc[id] = {lastRevision}
 				return acc
@@ -172,6 +174,34 @@ const app = {
 		await board.save()
 		app.state.boards[id] = data
 		return app.state.boards[id]
+	},
+	async handleStandupStart (client, message) {
+		const data = message[2]
+		const board = app.state.boards[data.board][0].insert
+		if (app.state.standups[board._id]) throw new Error(`standup for board ${board._id} already running!`)
+		const standup = {
+			board: board._id,
+			stage: {name: 'join'},
+			participants: board.users
+				// lazy sort
+				.map(user => [Math.random(), user])
+				.sort()
+				.map(i => ({
+					user: i[1],
+					joined: i[1] === client.userId
+				}))
+		}
+		app.state.standups[board._id] = standup
+		return standup
+	},
+	async handleStandupJoin (client, message) {
+		const {board: boardId, user, join} = message[2]
+		const board = app.state.boards[boardId][0].insert
+		const standup = app.state.standups[board._id]
+		if (!standup) throw new Error(`no standup running for board ${board._id}!`)
+		const participant = standup.participants.find(participant => participant.user === user)
+		participant.joined = join
+		return message[2]
 	}
 }
 

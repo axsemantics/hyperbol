@@ -1,13 +1,23 @@
 <template lang="pug">
-.v-board(v-if="board", :class="{dragging: draggingCard}")
+.v-board(v-if="board", :class="{dragging: draggingCard, 'running-standup': standup}")
 	.board-header
 		input.name(type="text", :value="board.name", @input="changeBoardName")
-		.users
-			bunt-button#btn-join-board(v-if="!hasJoinedBoard", @click="joinBoard") join
-			.user(v-for="user of users")
-				img(:src="user.profile.picture", :title="user.profile.email")
-	.lanes
+		.right
+			.users
+				bunt-button#btn-join-board(v-if="!hasJoinedBoard", @click="joinBoard") join
+				.user(v-for="user of users")
+					img(:src="user.profile.picture", :title="user.profile.email", draggable="false")
+			bunt-button#btn-start-standup(v-if="!standup", @click="startStandup") start stand-up
+	.standup-join(v-if="standup && standup.stage.name === 'join'")
+		h1 Get ready!
+		.participants
+			.participant(v-for="participant of participants", :class="{joined: participant.joined, focused: participant.user.id === focusedParticipant}", @click="joinStandup(participant.user.id, !participant.joined)")
+				img(:src="participant.user.profile.picture", :title="participant.user.profile.email", draggable="false")
+		bunt-button#btn-join-standup(v-if="ownStandupParticipant && !ownStandupParticipant.joined", @click="joinStandup(userId, true)") Join
+		bunt-button#btn-begin-standup(v-else, @click="beginStandup") Begin!
+	.lanes(v-else)
 		lane(v-for="lane of LANES", :lane="lane", :board="board", @startDragging="startDragging", :draggingCard="draggingCard")
+	.standup-control(v-if="standup")
 	card(v-if="draggingCard", :card="draggingCard", :board="board", :dragClone="true", :style="dragCloneStyle")
 </template>
 <script>
@@ -30,14 +40,18 @@ export default {
 			LANES,
 			draggingCard: null,
 			draggingOffset: null,
-			draggingPosition: null
+			draggingPosition: null,
+			focusedParticipant: null
 		}
 	},
 	computed: {
-		...mapState(['boards']),
+		...mapState(['boards', 'standups']),
 		...mapGetters(['userId']),
 		board () {
 			return this.boards?.[this.$route.params.boardId]?.[0].insert // naively unpack root delta
+		},
+		standup () {
+			return this.standups?.[this.$route.params.boardId]
 		},
 		dragCloneStyle () {
 			if (!this.draggingPosition) return
@@ -51,16 +65,24 @@ export default {
 		},
 		users () {
 			return this.board.users.map(userId => this.$store.state.users[userId])
+		},
+		participants () {
+			return this.standup?.participants.map(({user, joined}) => ({user: this.$store.state.users[user], joined}))
+		},
+		ownStandupParticipant () {
+			return this.standup?.participants.find(({user}) => user === this.userId)
 		}
 	},
 	created () {},
 	mounted () {
 		document.addEventListener('mouseup', this.handleMouseup)
 		document.addEventListener('mousemove', this.handleMousemove)
+		document.addEventListener('keydown', this.handleKeydown)
 	},
 	destroyed () {
 		document.removeEventListener('mouseup', this.handleMouseup)
 		document.removeEventListener('mousemove', this.handleMousemove)
+		document.removeEventListener('keydown', this.handleKeydown)
 	},
 	methods: {
 		changeBoardName (event) {
@@ -68,6 +90,19 @@ export default {
 		},
 		joinBoard () {
 			this.$store.dispatch('joinBoard', {board: this.board})
+		},
+		async startStandup () {
+			await this.$store.dispatch('startStandup', {board: this.board})
+			this.focusedParticipant = this.standup?.participants[0].user
+		},
+		joinStandup (user, join) {
+			this.$store.dispatch('joinStandup', {board: this.board, user, join})
+		},
+		abortStandup () {
+			this.$store.dispatch('abortStandup', {board: this.board})
+		},
+		beginStandup () {
+			this.$store.dispatch('beginStandup', {board: this.board})
 		},
 		startDragging ({card, event}) {
 			this.draggingCard = Object.assign({}, card)
@@ -158,6 +193,49 @@ export default {
 					}
 				}
 			}
+		},
+		handleKeydown (event) {
+			console.log(event)
+			const changeFocusedParticipant = (mod) => {
+				if (!this.focusedParticipant) {
+					this.focusedParticipant = this.standup.participants[0].user
+				} else {
+					let index = this.standup.participants.findIndex(({user}) => user === this.focusedParticipant)
+					index += mod
+					index = Math.max(0, Math.min(index, this.standup.participants.length - 1))
+					this.focusedParticipant = this.standup.participants[index].user
+				}
+			}
+			if (this.standup?.stage.name === 'join') {
+				switch (event.key) {
+					case 'ArrowLeft': {
+						changeFocusedParticipant(-1)
+						break
+					}
+					case 'ArrowRight': {
+						changeFocusedParticipant(1)
+						break
+					}
+					case 'ArrowUp': {
+						this.$store.dispatch('joinStandup', {
+							board: this.board,
+							user: this.focusedParticipant,
+							join: true
+						})
+						changeFocusedParticipant(1)
+						break
+					}
+					case 'ArrowDown': {
+						this.$store.dispatch('joinStandup', {
+							board: this.board,
+							user: this.focusedParticipant,
+							join: false
+						})
+						changeFocusedParticipant(1)
+						break
+					}
+				}
+			}
 		}
 	}
 }
@@ -183,6 +261,9 @@ export default {
 			font-size: 18px
 			border: none
 			outline: none
+		.right
+			display: flex
+			align-items: center
 		.users
 			display: flex
 			align-items: center
@@ -196,6 +277,9 @@ export default {
 					border: 2px solid $clr-white
 				&:not(:first-child)
 					margin-left: -16px
+		#btn-start-standup
+			button-style(color: $clr-primary)
+			margin-left: 8px
 	.lanes
 		flex: auto
 		display: flex
@@ -204,4 +288,32 @@ export default {
 		min-height: 0
 	&.dragging *
 		cursor: grabbing !important
+
+	// standup stuff
+	.standup-join
+		display: flex
+		flex-direction: column
+		align-items: center
+
+		.participants
+			display: flex
+			.participant
+				cursor: pointer
+				&:not(:last-child)
+					margin-right: 8px
+				&:not(.joined)
+					opacity: .6
+					img
+						border: 4px solid transparent
+				&.joined
+					img
+						border: 4px solid $clr-primary
+				&.focused
+					background-color: $clr-disabled-text-light
+				img
+					height: 120px
+					border-radius: 50%
+		#btn-join-standup, #btn-begin-standup
+			button-style(color: $clr-primary, size: large)
+			margin-top: 32px
 </style>
