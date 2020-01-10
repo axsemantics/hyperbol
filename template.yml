@@ -17,6 +17,7 @@ Resources:
         - AttributeName: id
           KeyType: HASH
     DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
 
   BoardTable:
     Type: AWS::DynamoDB::Table
@@ -29,6 +30,7 @@ Resources:
         - AttributeName: id
           KeyType: HASH
     DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
 
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
