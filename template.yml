@@ -79,6 +79,8 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       RetentionInDays: 60
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
 
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
