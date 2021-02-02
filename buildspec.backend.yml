@@ -12,7 +12,9 @@ phases:
 
   post_build:
     commands:
-      - eval $(aws ecr get-login --no-include-email)
+      - >-
+        aws ecr get-login-password --region "$(echo ${ECR_REPOSITORY} | cut -d '.' -f 4)"
+        | docker login --username AWS --password-stdin "$(echo ${ECR_REPOSITORY} | cut -d '/' -f 1)"
       - docker push "${DOCKER_IMAGE_NAME}"
       - cp template.yml build_artifacts/${DEPLOY_TEMPLATE_FILE_NAME}
       - >-
