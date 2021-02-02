@@ -1,10 +1,6 @@
 ---
 version: 0.2
 phases:
-  install:
-    runtime-versions:
-      docker: 18
-
   pre_build:
     commands:
       - export DOCKER_IMAGE_NAME="${ECR_REPOSITORY}:hyperbol_api-$(date +"%s")"
